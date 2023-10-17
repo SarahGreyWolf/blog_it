@@ -1,23 +1,76 @@
-use std::io;
+use core::panic;
+use std::{cmp::Ordering, fmt::Display, io};
 
 mod parser;
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, PartialEq, Eq, Ord)]
+struct Date {
+    day: u32,
+    month: u32,
+    year: u32,
+}
+
+impl PartialOrd for Date {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        if self.year == other.year && self.month == other.month && self.day == other.day {
+            return Some(core::cmp::Ordering::Equal);
+        }
+        if self.year > other.year {
+            return Some(core::cmp::Ordering::Greater);
+        }
+        if self.month > other.month && self.year == other.year {
+            return Some(core::cmp::Ordering::Greater);
+        }
+        if self.day > other.day && self.month == other.month && self.year == other.year {
+            return Some(core::cmp::Ordering::Greater);
+        }
+        Some(core::cmp::Ordering::Less)
+    }
+}
+
+impl Display for Date {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut output = String::new();
+
+        output.push_str(&format!("{:2}/", self.day));
+        output.push_str(&format!("{:2}/", self.month));
+        output.push_str(&format!("{:4}", self.year));
+        write!(f, "{}", output)
+    }
+}
+
+#[derive(Default, Debug, Eq)]
 struct Post {
     title: String,
     short_desc: String,
     content: String,
-    date: String,
+    date: Date,
     author: String,
+    is_draft: bool,
+}
+
+impl PartialEq for Post {
+    fn eq(&self, other: &Self) -> bool { self.title == other.title && self.date == other.date }
+}
+
+impl PartialOrd for Post {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> { self.date.partial_cmp(&other.date) }
+}
+
+impl Ord for Post {
+    fn cmp(&self, other: &Self) -> Ordering { self.date.cmp(&other.date) }
 }
 
 impl Post {
     fn produced_html(&self) -> String {
         let mut main = format!(
             "
+            <header>
                 <h1>{}</h1>
-                <h3>{}</h3>",
-            self.title, self.date
+                <h3>{}</h3>
+                <h2>{}</h2>
+            </header>",
+            self.title, self.date, self.short_desc
         );
 
         let mut block = String::from("<p>");
@@ -52,62 +105,44 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         posts.push(Post::from(post_string));
     }
 
+    posts.sort();
+    posts.reverse();
+
     for post in &posts {
+        if post.is_draft {
+            continue;
+        }
         let output = post_template.replace("{{% POST %}}", &post.produced_html());
+        let output = output.replace("{{% POST_TITLE %}}", &post.title);
         let file_name = post.title.replace(' ', "_");
         std::fs::write(format!("./site/posts/{}.html", file_name), output)?;
     }
 
-    let mut latest_post = &Post::default();
+    let range = if posts.len() > 4 {
+        0..5
+    } else {
+        0..posts.len()
+    };
 
-    {
-        let mut latest_day = 0;
-        let mut latest_month = 0;
-        let mut latest_year = 0;
+    let latest_posts = &posts[range];
 
-        for post in &posts {
-            let mut split = post.date.split('/');
-            let Some(day) = split.next() else {
-                return Ok(());
-            };
-            let Some(month) = split.next() else {
-                return Ok(());
-            };
-            let Some(year) = split.next() else {
-                return Ok(());
-            };
-            let day: u32 = day.parse()?;
-            let month: u32 = month.parse()?;
-            let year: u32 = year.parse()?;
-            if year > latest_year {
-                latest_year = year;
-            }
-            if month > latest_month {
-                latest_month = month;
-            }
-            if day > latest_day {
-                latest_day = day;
-            }
-
-            if day == latest_day && month == latest_month && year == latest_year {
-                latest_post = post;
-            }
-        }
-    }
-
-    generate_home(latest_post)?;
+    generate_home(latest_posts)?;
     generate_posts_list(&posts)?;
 
     Ok(())
 }
 
-fn generate_home(post: &Post) -> io::Result<()> {
+fn generate_home(posts: &[Post]) -> io::Result<()> {
     let home_template = std::fs::read_to_string("./templates/home.html")?;
-    let file_name = post.title.replace(' ', "_");
-    let output = home_template.replace(
-        "{{% LATEST %}}",
-        &format!("<a href=\"/posts/{}.html\">{}</a>", file_name, post.title),
-    );
+    let mut output = String::new();
+    for post in posts {
+        let file_name = post.title.replace(' ', "_");
+        output.push_str(&format!(
+            "<li><a href=\"/posts/{}.html\">{}</a></li>",
+            file_name, post.title
+        ));
+    }
+    let output = home_template.replace("{{% LATEST %}}", &output);
     std::fs::write("./site/index.html", output)?;
     Ok(())
 }
@@ -117,6 +152,9 @@ fn generate_posts_list(posts: &[Post]) -> io::Result<()> {
     let mut output = String::from("<div class=\"posts\">");
 
     for post in posts {
+        if post.is_draft {
+            continue;
+        }
         let file_name = post.title.replace(' ', "_");
         output.push_str(&format!(
             "<a href=\"/posts/{}.html\">{}</a>",

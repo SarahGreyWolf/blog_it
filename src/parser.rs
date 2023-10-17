@@ -1,4 +1,4 @@
-use crate::Post;
+use crate::{Date, Post};
 
 impl From<String> for Post {
     fn from(value: String) -> Self {
@@ -23,12 +23,14 @@ impl From<String> for Post {
                 in_content = !in_content;
                 continue;
             }
-            if l.starts_with("##") {
-                post.date = l.to_string();
-                post.date = post.date.trim_start_matches("## ").to_owned();
+            if l.starts_with("###") && l.contains("DRAFT") && !in_content {
+                post.is_draft = true;
+            }
+            if l.starts_with("##") && !in_content {
+                post.date = Date::from(l.trim_start_matches("## ").to_owned());
                 continue;
             }
-            if l.starts_with('#') {
+            if l.starts_with('#') && !in_content {
                 post.title = l.to_string();
                 post.title = post.title.trim_start_matches("# ").to_owned();
                 continue;
@@ -47,5 +49,25 @@ impl From<String> for Post {
         post.short_desc = post.short_desc.trim_end().to_owned();
 
         post
+    }
+}
+
+impl From<String> for Date {
+    fn from(value: String) -> Self {
+        let mut split = value.split('/');
+        let Some(day) = split.next() else {
+            panic!("Date was invalid");
+        };
+        let Some(month) = split.next() else {
+            panic!("Date was invalid");
+        };
+        let Some(year) = split.next() else {
+            panic!("Date  was invalid");
+        };
+        let day: u32 = day.parse().unwrap();
+        let month: u32 = month.parse().unwrap();
+        let year: u32 = year.parse().unwrap();
+
+        Date { day, month, year }
     }
 }
