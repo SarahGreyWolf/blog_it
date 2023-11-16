@@ -14,8 +14,12 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+    - name: Build Generator
+      run: cargo build --release --verbose
+    - name: Install Generator
+      run: cargo install --path .
     - name: Build Blog
-      run: cargo run --release --verbose
+      run: blog_it
     - name: Setup Pages
       id: pages
       uses: actions/configure-pages@v3
