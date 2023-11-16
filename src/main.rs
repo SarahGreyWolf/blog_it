@@ -94,13 +94,22 @@ impl Post {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let post_template = std::fs::read_to_string("templates/post.html")?;
+    let post_template = match std::fs::read_to_string("templates/post.html") {
+        Ok(pt) => pt,
+        Err(e) => panic!("Couldn't get post template: {e}"),
+    };
 
     let mut posts = vec![];
-    let files = std::fs::read_dir("posts")?;
+    let files = match std::fs::read_dir("posts") {
+        Ok(pt) => pt,
+        Err(e) => panic!("Couldn't get posts: {e}"),
+    };
     for entry in files {
         let file = entry?;
-        let post_string = std::fs::read_to_string(file.path())?;
+        let post_string = match std::fs::read_to_string(file.path()) {
+            Ok(pt) => pt,
+            Err(e) => panic!("Couldn't read from post {:?}: {e}", file.path()),
+        };
         posts.push(Post::from(post_string));
     }
 
@@ -114,7 +123,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let output = post_template.replace("{{% POST %}}", &post.produced_html());
         let output = output.replace("{{% POST_TITLE %}}", &post.title);
         let file_name = post.title.replace(' ', "_");
-        std::fs::write(format!("site/posts/{}.html", file_name), output)?;
+        match std::fs::write(format!("site/posts/{}.html", file_name), output) {
+            Ok(_) => {}
+            Err(e) => panic!(
+                "Couldn't write to {}: {e}",
+                format!("site/posts/{}.html", file_name)
+            ),
+        };
     }
 
     let range = if posts.len() > 4 {
@@ -132,7 +147,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn generate_home(posts: &[Post]) -> io::Result<()> {
-    let home_template = std::fs::read_to_string("templates/home.html")?;
+    let home_template = match std::fs::read_to_string("templates/home.html") {
+        Ok(pt) => pt,
+        Err(e) => panic!("Couldn't get home template: {e}"),
+    };
     let mut output = String::new();
     for post in posts {
         let file_name = post.title.replace(' ', "_");
@@ -147,7 +165,10 @@ fn generate_home(posts: &[Post]) -> io::Result<()> {
 }
 
 fn generate_posts_list(posts: &[Post]) -> io::Result<()> {
-    let posts_template = std::fs::read_to_string("templates/posts.html")?;
+    let posts_template = match std::fs::read_to_string("templates/posts.html") {
+        Ok(pt) => pt,
+        Err(e) => panic!("Couldn't get posts template: {e}"),
+    };
     let mut output = String::from("<div class=\"posts\">");
 
     for post in posts {
