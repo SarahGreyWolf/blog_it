@@ -164,7 +164,10 @@ fn generate_home(posts: &[Post]) -> io::Result<()> {
         ));
     }
     let output = home_template.replace("{{% LATEST %}}", &output);
-    std::fs::write("site/index.html", output)?;
+    match std::fs::write("site/index.html", output) {
+        Ok(_) => {}
+        Err(e) => panic!("Couldn't write to site/index.html: {e}"),
+    };
     Ok(())
 }
 
@@ -187,7 +190,10 @@ fn generate_posts_list(posts: &[Post]) -> io::Result<()> {
     }
     output.push_str("</div>");
     let output = posts_template.replace("{{% POSTS %}}", &output);
-    std::fs::write("site/posts/index.html", output)?;
+    match std::fs::write("site/posts/index.html", output) {
+        Ok(_) => {}
+        Err(e) => panic!("Couldn't write to site/index.html: {e}"),
+    };
 
     Ok(())
 }
