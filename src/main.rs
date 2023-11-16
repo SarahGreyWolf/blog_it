@@ -1,4 +1,9 @@
-use std::{cmp::Ordering, fmt::Display, io};
+use std::{
+    cmp::Ordering,
+    fmt::Display,
+    fs::OpenOptions,
+    io::{self, Read, Write},
+};
 
 mod parser;
 
@@ -94,6 +99,8 @@ impl Post {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let mut options = OpenOptions::new();
+    options.create(true).write(true).append(true).read(true);
     let post_template = match std::fs::read_to_string("./templates/post.html") {
         Ok(pt) => pt,
         Err(e) => panic!("Couldn't get post template: {e}"),
@@ -108,8 +115,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let file = entry?;
         if let Some(ext) = file.path().extension() {
             if ext == "md" {
-                let post_string = match std::fs::read_to_string(file.path()) {
-                    Ok(pt) => pt,
+                let mut open_file = match options.open(file.path()) {
+                    Ok(f) => f,
+                    Err(e) => panic!("Couldn't open file for post {:?}: {e}", file.path()),
+                };
+                let mut post_string = String::new();
+                match open_file.read_to_string(&mut post_string) {
+                    Ok(_) => {}
                     Err(e) => panic!("Couldn't read from post {:?}: {e}", file.path()),
                 };
                 posts.push(Post::from(post_string));
@@ -127,7 +139,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let output = post_template.replace("{{% POST %}}", &post.produced_html());
         let output = output.replace("{{% POST_TITLE %}}", &post.title);
         let file_name = post.title.replace(' ', "_");
-        match std::fs::write(format!("./site/posts/{}.html", file_name), output) {
+        let mut open_file = match options.open(format!("./site/posts/{}.html", file_name)) {
+            Ok(f) => f,
+            Err(e) => panic!(
+                "Could not open or create file {}: {e}",
+                format!("./site/posts/{}.html", file_name)
+            ),
+        };
+        match open_file.write(output.as_bytes()) {
             Ok(_) => {}
             Err(e) => panic!(
                 "Couldn't write to {}: {e}",
@@ -144,15 +163,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let latest_posts = &posts[range];
 
-    generate_home(latest_posts)?;
-    generate_posts_list(&posts)?;
+    generate_home(&options, latest_posts)?;
+    generate_posts_list(&options, &posts)?;
 
     Ok(())
 }
 
-fn generate_home(posts: &[Post]) -> io::Result<()> {
-    let home_template = match std::fs::read_to_string("./templates/home.html") {
-        Ok(pt) => pt,
+fn generate_home(options: &OpenOptions, posts: &[Post]) -> io::Result<()> {
+    let mut home_file = match options.open("./templates/home.html") {
+        Ok(f) => f,
+        Err(e) => panic!("Could not open file ./templates/home.html: {e}"),
+    };
+    let mut home_template = String::new();
+    match home_file.read_to_string(&mut home_template) {
+        Ok(_) => {}
         Err(e) => panic!("Couldn't get home template: {e}"),
     };
     let mut output = String::new();
@@ -164,16 +188,22 @@ fn generate_home(posts: &[Post]) -> io::Result<()> {
         ));
     }
     let output = home_template.replace("{{% LATEST %}}", &output);
-    match std::fs::write("./site/index.html", output) {
-        Ok(_) => {}
-        Err(e) => panic!("Couldn't write to site/index.html: {e}"),
+    let mut file = match options.open("./site/index.html") {
+        Ok(f) => f,
+        Err(e) => panic!("Could not open ./site/index.html: {e}"),
     };
+    file.write_all(output.as_bytes())?;
     Ok(())
 }
 
-fn generate_posts_list(posts: &[Post]) -> io::Result<()> {
-    let posts_template = match std::fs::read_to_string("./templates/posts.html") {
-        Ok(pt) => pt,
+fn generate_posts_list(options: &OpenOptions, posts: &[Post]) -> io::Result<()> {
+    let mut posts_file = match options.open("./templates/posts.html") {
+        Ok(f) => f,
+        Err(e) => panic!("Could not open file ./templates/posts.html: {e}"),
+    };
+    let mut posts_template = String::new();
+    match posts_file.read_to_string(&mut posts_template) {
+        Ok(_) => {}
         Err(e) => panic!("Couldn't get posts template: {e}"),
     };
     let mut output = String::from("<div class=\"posts\">");
@@ -190,9 +220,13 @@ fn generate_posts_list(posts: &[Post]) -> io::Result<()> {
     }
     output.push_str("</div>");
     let output = posts_template.replace("{{% POSTS %}}", &output);
-    match std::fs::write("./site/posts/index.html", output) {
+    let mut file = match options.open("./site/posts/index.html") {
+        Ok(f) => f,
+        Err(e) => panic!("Could not open ./site/posts/index.html: {e}"),
+    };
+    match file.write(output.as_bytes()) {
         Ok(_) => {}
-        Err(e) => panic!("Couldn't write to site/index.html: {e}"),
+        Err(e) => panic!("Couldn't write to ./site/posts/index.html: {e}"),
     };
 
     Ok(())
