@@ -1,0 +1,27 @@
+# This workflow builds the blog and pushes it to github pages
+
+name: Generate Blog and publish to gh-pages
+
+on: 
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Build Blog
+      run: cargo build --verbose
+    - name: Deploy to GitHub Pages
+      if: success()
+      uses: crazy-max/ghaction-github-pages@v2
+      with:
+        target_branch: gh-pages
+        build_dir: site
+        keep_history: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
