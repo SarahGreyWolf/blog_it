@@ -16,11 +16,9 @@ jobs:
       uses: actions/checkout@v2
     - name: Build Generator
       run: cargo build --release --verbose
-    - name: Install Generator
-      run: cargo install --path .
     - name: Build Blog
       if: success()
-      run: blog_it
+      run: cargo run --release --verbose
     - name: Setup Pages
       id: pages
       uses: actions/configure-pages@v3
