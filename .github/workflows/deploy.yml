@@ -19,6 +19,7 @@ jobs:
     - name: Install Generator
       run: cargo install --path .
     - name: Build Blog
+      if: success()
       run: blog_it
     - name: Setup Pages
       id: pages
