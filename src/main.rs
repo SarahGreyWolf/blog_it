@@ -5,6 +5,9 @@ use std::{
     io::{self, Read, Write},
 };
 
+use chrono::prelude::*;
+use chrono::{DateTime, Utc};
+
 mod parser;
 
 #[derive(Default, Debug, PartialEq, Eq, Ord)]
@@ -98,6 +101,34 @@ impl Post {
     }
 }
 
+struct Details {
+    name: String,
+    username: String,
+    age: String,
+    email: String,
+    pronouns: String,
+}
+
+impl Details {
+    pub fn new() -> Result<Details, Box<dyn std::error::Error>> {
+        Ok(Details {
+            name: String::from("Sarah"),
+            username: String::from("SarahGreyWolf"),
+            age: generate_age()?,
+            email: String::from("m.sarahgreywolf@outlook.com"),
+            pronouns: String::from("She/Her"),
+        })
+    }
+
+    pub fn modify_text(&self, input: &mut String) {
+        *input = input.replace("{{% NAME %}}", &self.name);
+        *input = input.replace("{{% USERNAME %}}", &self.username);
+        *input = input.replace("{{% AGE %}}", &self.age);
+        *input = input.replace("{{% EMAIL %}}", &self.email);
+        *input = input.replace("{{% PRONOUNS %}}", &self.pronouns);
+    }
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut options = OpenOptions::new();
     options.create(true).write(true).read(true);
@@ -105,6 +136,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok(pt) => pt,
         Err(e) => panic!("Couldn't get post template: {e}"),
     };
+
+    let details = Details::new()?;
 
     let mut posts = vec![];
     let files = match std::fs::read_dir("./posts") {
@@ -136,8 +169,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if post.is_draft {
             continue;
         }
-        let output = post_template.replace("{{% POST %}}", &post.produced_html());
-        let output = output.replace("{{% POST_TITLE %}}", &post.title);
+        let mut output = post_template.replace("{{% POST %}}", &post.produced_html());
+        output = output.replace("{{% POST_TITLE %}}", &post.title);
+        details.modify_text(&mut output);
+
         let file_name = post.title.replace(' ', "_");
         let mut open_file = match options.open(format!("./site/posts/{}.html", file_name)) {
             Ok(f) => f,
@@ -163,13 +198,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let latest_posts = &posts[range];
 
-    generate_home(&options, latest_posts)?;
-    generate_posts_list(&options, &posts)?;
+    generate_home(&options, &details, latest_posts)?;
+    generate_posts_list(&options, &details, &posts)?;
 
     Ok(())
 }
 
-fn generate_home(options: &OpenOptions, posts: &[Post]) -> io::Result<()> {
+fn generate_home(options: &OpenOptions, details: &Details, posts: &[Post]) -> io::Result<()> {
     let mut home_file = match options.open("./templates/home.html") {
         Ok(f) => f,
         Err(e) => panic!("Could not open file ./templates/home.html: {e}"),
@@ -187,7 +222,8 @@ fn generate_home(options: &OpenOptions, posts: &[Post]) -> io::Result<()> {
             file_name, post.title
         ));
     }
-    let output = home_template.replace("{{% LATEST %}}", &output);
+    let mut output = home_template.replace("{{% LATEST %}}", &output);
+    details.modify_text(&mut output);
     let mut file = match options.open("./site/index.html") {
         Ok(f) => f,
         Err(e) => panic!("Could not open ./site/index.html: {e}"),
@@ -196,7 +232,7 @@ fn generate_home(options: &OpenOptions, posts: &[Post]) -> io::Result<()> {
     Ok(())
 }
 
-fn generate_posts_list(options: &OpenOptions, posts: &[Post]) -> io::Result<()> {
+fn generate_posts_list(options: &OpenOptions, details: &Details, posts: &[Post]) -> io::Result<()> {
     let mut posts_file = match options.open("./templates/posts.html") {
         Ok(f) => f,
         Err(e) => panic!("Could not open file ./templates/posts.html: {e}"),
@@ -219,7 +255,8 @@ fn generate_posts_list(options: &OpenOptions, posts: &[Post]) -> io::Result<()> 
         ));
     }
     output.push_str("</div>");
-    let output = posts_template.replace("{{% POSTS %}}", &output);
+    let mut output = posts_template.replace("{{% POSTS %}}", &output);
+    details.modify_text(&mut output);
     let mut file = match options.open("./site/posts/index.html") {
         Ok(f) => f,
         Err(e) => panic!("Could not open ./site/posts/index.html: {e}"),
@@ -230,4 +267,17 @@ fn generate_posts_list(options: &OpenOptions, posts: &[Post]) -> io::Result<()> 
     };
 
     Ok(())
+}
+
+fn generate_age() -> Result<String, Box<dyn std::error::Error>> {
+    let current_utc: DateTime<Utc> = Utc::now();
+    let naive = current_utc.date_naive();
+    let Some(birth) = NaiveDate::from_ymd_opt(1995, 10, 29) else {
+        panic!("Could not get date from from_ymd_opt(1995, 10, 29)");
+    };
+    let Some(age) = naive.years_since(birth) else {
+        panic!("Could not get age")
+    };
+
+    Ok(age.to_string())
 }
