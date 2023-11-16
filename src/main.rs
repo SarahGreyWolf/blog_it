@@ -100,7 +100,7 @@ impl Post {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut options = OpenOptions::new();
-    options.create(true).write(true).append(true).read(true);
+    options.create(true).write(true).read(true);
     let post_template = match std::fs::read_to_string("./templates/post.html") {
         Ok(pt) => pt,
         Err(e) => panic!("Couldn't get post template: {e}"),
