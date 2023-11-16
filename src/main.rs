@@ -94,10 +94,10 @@ impl Post {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let post_template = std::fs::read_to_string("./templates/post.html")?;
+    let post_template = std::fs::read_to_string("templates/post.html")?;
 
     let mut posts = vec![];
-    let files = std::fs::read_dir("./posts")?;
+    let files = std::fs::read_dir("posts")?;
     for entry in files {
         let file = entry?;
         let post_string = std::fs::read_to_string(file.path())?;
@@ -114,7 +114,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let output = post_template.replace("{{% POST %}}", &post.produced_html());
         let output = output.replace("{{% POST_TITLE %}}", &post.title);
         let file_name = post.title.replace(' ', "_");
-        std::fs::write(format!("./site/posts/{}.html", file_name), output)?;
+        std::fs::write(format!("site/posts/{}.html", file_name), output)?;
     }
 
     let range = if posts.len() > 4 {
@@ -132,7 +132,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn generate_home(posts: &[Post]) -> io::Result<()> {
-    let home_template = std::fs::read_to_string("./templates/home.html")?;
+    let home_template = std::fs::read_to_string("templates/home.html")?;
     let mut output = String::new();
     for post in posts {
         let file_name = post.title.replace(' ', "_");
@@ -142,12 +142,12 @@ fn generate_home(posts: &[Post]) -> io::Result<()> {
         ));
     }
     let output = home_template.replace("{{% LATEST %}}", &output);
-    std::fs::write("./site/index.html", output)?;
+    std::fs::write("site/index.html", output)?;
     Ok(())
 }
 
 fn generate_posts_list(posts: &[Post]) -> io::Result<()> {
-    let posts_template = std::fs::read_to_string("./templates/posts.html")?;
+    let posts_template = std::fs::read_to_string("templates/posts.html")?;
     let mut output = String::from("<div class=\"posts\">");
 
     for post in posts {
@@ -162,7 +162,7 @@ fn generate_posts_list(posts: &[Post]) -> io::Result<()> {
     }
     output.push_str("</div>");
     let output = posts_template.replace("{{% POSTS %}}", &output);
-    std::fs::write("./site/posts/index.html", output)?;
+    std::fs::write("site/posts/index.html", output)?;
 
     Ok(())
 }
