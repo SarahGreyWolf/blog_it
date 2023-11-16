@@ -15,7 +15,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
     - name: Build Blog
-      working-directory: ./blog_it
+      working-directory: blog_it
       run: cargo run --release --verbose
     - name: Setup Pages
       id: pages
