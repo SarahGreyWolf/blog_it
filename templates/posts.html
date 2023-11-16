@@ -1,12 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="stylesheet" href="/css/main.css" />
     </head>
     <body>
-        <div>
-            <nav></nav>
+        <div class="nav">
+            <nav class="container">
+                <a href="/">Home</a>
+                <a href="/posts">Posts</a>
+            </nav>
         </div>
-        <div class="content">{{% POSTS %}}</div>
+        <div class="container content">{{% POSTS %}}</div>
+        <footer class="container">
+            <h3>This site is part of the Queercoded Webring</h3>
+            <a
+                href="https://webring.queercoded.dev/prev?source=sarahgreywolf.dev"
+                ><img
+                    src="/assets/webring/Retro/button-prev.png"
+                    alt="previous"
+            /></a>
+            <img
+                src="/assets/webring/Retro/88x31.gif"
+                alt="queercoded webring"
+            />
+            <a
+                href="https://webring.queercoded.dev/next?source=sarahgreywolf.dev"
+                ><img src="/assets/webring/Retro/button-next.png" alt="next"
+            /></a>
+        </footer>
     </body>
 </html>

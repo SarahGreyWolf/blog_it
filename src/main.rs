@@ -1,4 +1,3 @@
-use core::panic;
 use std::{cmp::Ordering, fmt::Display, io};
 
 mod parser;

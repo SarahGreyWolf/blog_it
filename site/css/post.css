@@ -1,0 +1,28 @@
+@media screen and (max-width: 1000px) {
+    div.post {
+        width: 90%;
+    }
+}
+
+@media print {
+    div.post {
+        width: 90%;
+    }
+}
+
+div.post {
+    width: 75%;
+}
+
+p,
+h1,
+h2,
+h3 {
+    -webkit-filter: invert(100%);
+    filter: invert(100%);
+}
+
+p {
+    margin-top: 2em;
+    margin-bottom: 2em;
+}
