@@ -106,11 +106,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     for entry in files {
         let file = entry?;
-        let post_string = match std::fs::read_to_string(file.path()) {
-            Ok(pt) => pt,
-            Err(e) => panic!("Couldn't read from post {:?}: {e}", file.path()),
-        };
-        posts.push(Post::from(post_string));
+        if let Some(ext) = file.path().extension() {
+            if ext == "md" {
+                let post_string = match std::fs::read_to_string(file.path()) {
+                    Ok(pt) => pt,
+                    Err(e) => panic!("Couldn't read from post {:?}: {e}", file.path()),
+                };
+                posts.push(Post::from(post_string));
+            }
+        }
     }
 
     posts.sort();
