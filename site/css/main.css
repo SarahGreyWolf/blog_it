@@ -1,0 +1,157 @@
+@media (max-width: 1000px) {
+    * {
+        font-size: 23px;
+    }
+    .content header {
+        flex-direction: column;
+        gap: 1em !important;
+    }
+
+    div.nav {
+        padding-top: 0.5em;
+        padding-bottom: 0.5em;
+    }
+
+    .container {
+        width: 90% !important;
+    }
+}
+
+@media screen and (prefers-color-scheme: dark) {
+    body {
+        background-color: #222222;
+    }
+
+    div.nav {
+        background-color: #444444;
+    }
+    nav a {
+        color: lightgrey;
+    }
+
+    nav a:visited {
+        color: darkgrey;
+    }
+}
+
+@media screen and (prefers-color-scheme: light) {
+    body {
+        background-color: lightgrey;
+    }
+
+    div.nav {
+        background-color: darkgrey;
+    }
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    margin-bottom: 2em;
+    display: flex;
+    flex-direction: column;
+}
+
+footer {
+    flex-shrink: 0;
+    text-align: center;
+    margin-top: 2em;
+}
+
+* {
+    margin: 0;
+}
+
+div.nav {
+    height: 40px;
+    margin-bottom: 3em;
+}
+
+a :not(img),
+p,
+h1,
+h2,
+h3,
+li {
+    -webkit-filter: invert(100%);
+    filter: invert(100%);
+}
+
+ul {
+    margin: 0;
+    list-style-type: none;
+}
+
+ul > li {
+    text-indent: -10px;
+}
+
+ul > li::before {
+    content: "- ";
+}
+
+div.about ul li a:visited {
+    color: green;
+}
+
+div.nav {
+    height: 40px;
+    margin-bottom: 3em;
+}
+
+nav {
+    display: flex;
+    column-gap: 3em;
+    align-items: center;
+    height: 100%;
+}
+
+a {
+    text-align: left;
+    text-decoration: none;
+}
+
+a[href^="mailto:"] {
+    text-align: left;
+    text-decoration: none;
+    color: rgb(150, 89, 230);
+    -webkit-filter: invert(100%);
+    filter: invert(100%);
+}
+
+.content {
+    flex: 1 0 auto;
+}
+
+.content a:visited {
+    color: grey;
+}
+
+.container {
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+img.photo {
+    width: 341.3333333333px;
+    height: auto;
+    border-radius: 25%;
+}
+
+.content header {
+    display: flex;
+    gap: 5em;
+    margin-bottom: 2em;
+}
+
+.content header h1 {
+    font-size: 60px;
+}
+
+div.about * {
+    padding-bottom: 1em;
+}

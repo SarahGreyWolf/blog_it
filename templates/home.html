@@ -1,12 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Grey Wolf Haven</title>
         <link rel="stylesheet" href="/css/main.css" />
     </head>
     <body>
-        <div>
-            <nav></nav>
+        <div class="nav">
+            <nav class="container">
+                <a href="/">Home</a>
+                <a href="/posts">Posts</a>
+            </nav>
         </div>
-        <div class="content">{{% LATEST %}}</div>
+        <div class="container content">
+            <header>
+                <img
+                    class="photo"
+                    src="/assets/me.jpg"
+                    alt="A photo of me in a park"
+                />
+                <div class="about">
+                    <h1 style="color: lightgrey; filter: none">
+                        Grey Wolf Haven
+                    </h1>
+                    <div>
+                        <h3>Contact Details:</h3>
+                        <ul>
+                            <li>Phone: Email for Phone Number</li>
+                            <li>
+                                Email:
+                                <a href="mailto:m.sarahgreywolf@outlook.com"
+                                    >m.sarahgreywolf@outlook.com</a
+                                >
+                            </li>
+                        </ul>
+                    </div>
+                    <h2>About Me:</h2>
+                    <p>Wah</p>
+                </div>
+            </header>
+            <h2>Latest Posts:</h2>
+            <ul>
+                {{% LATEST %}}
+            </ul>
+        </div>
+        <footer class="container">
+            <h3>This site is part of the Queercoded Webring</h3>
+            <a
+                href="https://webring.queercoded.dev/prev?source=sarahgreywolf.dev"
+                ><img
+                    src="/assets/webring/Retro/button-prev.png"
+                    alt="previous"
+            /></a>
+            <img
+                src="/assets/webring/Retro/88x31.gif"
+                alt="queercoded webring"
+            />
+            <a
+                href="https://webring.queercoded.dev/next?source=sarahgreywolf.dev"
+                ><img src="/assets/webring/Retro/button-next.png" alt="next"
+            /></a>
+        </footer>
     </body>
 </html>
