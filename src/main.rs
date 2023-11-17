@@ -110,14 +110,14 @@ struct Details {
 }
 
 impl Details {
-    pub fn new() -> Result<Details, Box<dyn std::error::Error>> {
-        Ok(Details {
+    pub fn new() -> Details {
+        Details {
             name: String::from("Sarah"),
             username: String::from("SarahGreyWolf"),
-            age: generate_age()?,
+            age: generate_age(),
             email: String::from("m.sarahgreywolf@outlook.com"),
             pronouns: String::from("She/Her"),
-        })
+        }
     }
 
     pub fn modify_text(&self, input: &mut String) {
@@ -137,7 +137,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Err(e) => panic!("Couldn't get post template: {e}"),
     };
 
-    let details = Details::new()?;
+    let details = Details::new();
 
     let mut posts = vec![];
     let files = match std::fs::read_dir("./posts") {
@@ -269,7 +269,7 @@ fn generate_posts_list(options: &OpenOptions, details: &Details, posts: &[Post])
     Ok(())
 }
 
-fn generate_age() -> Result<String, Box<dyn std::error::Error>> {
+fn generate_age() -> String {
     let current_utc: DateTime<Utc> = Utc::now();
     let naive = current_utc.date_naive();
     let Some(birth) = NaiveDate::from_ymd_opt(1995, 10, 29) else {
@@ -279,5 +279,5 @@ fn generate_age() -> Result<String, Box<dyn std::error::Error>> {
         panic!("Could not get age")
     };
 
-    Ok(age.to_string())
+    age.to_string()
 }
