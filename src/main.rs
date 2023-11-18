@@ -216,6 +216,9 @@ fn generate_home(options: &OpenOptions, details: &Details, posts: &[Post]) -> io
     };
     let mut output = String::new();
     for post in posts {
+        if post.is_draft {
+            continue;
+        }
         let file_name = post.title.replace(' ', "_");
         output.push_str(&format!(
             "<li><a href=\"/posts/{}.html\">{}</a></li>",

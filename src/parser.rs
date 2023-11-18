@@ -23,10 +23,11 @@ impl From<String> for Post {
                 in_content = !in_content;
                 continue;
             }
-            if l.starts_with("### ") && l.contains("DRAFT") && !in_content {
+            if l.starts_with("###") && l.contains("DRAFT") && !in_content {
                 post.is_draft = true;
+                continue;
             }
-            if l.starts_with("## ") && !in_content {
+            if l.starts_with("##") && !in_content {
                 post.date = Date::from(l.trim_start_matches("## ").to_owned());
                 continue;
             }
