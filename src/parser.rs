@@ -23,10 +23,10 @@ impl From<String> for Post {
                 in_content = !in_content;
                 continue;
             }
-            if l.starts_with("###") && l.contains("DRAFT") && !in_content {
+            if l.starts_with("### ") && l.contains("DRAFT") && !in_content {
                 post.is_draft = true;
             }
-            if l.starts_with("##") && !in_content {
+            if l.starts_with("## ") && !in_content {
                 post.date = Date::from(l.trim_start_matches("## ").to_owned());
                 continue;
             }
@@ -56,13 +56,13 @@ impl From<String> for Date {
     fn from(value: String) -> Self {
         let mut split = value.split('/');
         let Some(day) = split.next() else {
-            panic!("Date was invalid");
+            panic!("Day part of Date was invalid: {value}");
         };
         let Some(month) = split.next() else {
-            panic!("Date was invalid");
+            panic!("Month part of Date was invalid: {value}");
         };
         let Some(year) = split.next() else {
-            panic!("Date  was invalid");
+            panic!("Year part of Date  was invalid: {value}");
         };
         let day: u32 = day.parse().unwrap();
         let month: u32 = month.parse().unwrap();
