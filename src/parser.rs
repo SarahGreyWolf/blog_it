@@ -1,4 +1,11 @@
 use crate::{Date, Post};
+use regex::Regex;
+
+pub fn convert_links(value: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let re = Regex::new(r"\[(?<title>.*)\]\((?<url>.*)\)")?;
+    let result = re.replace_all(value, r#"<a href="$url">$title</a>"#);
+    Ok(result.to_string())
+}
 
 impl From<String> for Post {
     fn from(value: String) -> Self {

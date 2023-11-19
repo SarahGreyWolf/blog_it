@@ -1,8 +1,9 @@
 use std::{
     cmp::Ordering,
+    error::Error,
     fmt::Display,
     fs::OpenOptions,
-    io::{self, Read, Write},
+    io::{Read, Write},
 };
 
 use chrono::{DateTime, NaiveDate, Utc};
@@ -68,7 +69,7 @@ impl Ord for Post {
 }
 
 impl Post {
-    fn produced_html(&self) -> String {
+    fn produced_html(&self) -> Result<String, Box<dyn Error>> {
         let mut main = format!(
             "
             <header>
@@ -81,22 +82,23 @@ impl Post {
 
         let mut block = String::from("<p>");
         for paragraph in self.content.split('\n') {
+            let linked_paragraph = parser::convert_links(&paragraph)?;
             // TODO: Handle markdown links
-            if paragraph.is_empty() {
+            if linked_paragraph.is_empty() {
                 block = block.trim_end_matches("<br>").to_owned();
                 block.push_str("</p>");
                 main.push_str(&block);
                 block = String::from("<p>");
                 continue;
             }
-            block.push_str(&format!("{paragraph}"));
+            block.push_str(&format!("{linked_paragraph}"));
             block.push_str("<br>");
         }
         block = block.trim_end_matches("<br>").to_owned();
         block.push_str("</p>");
         main.push_str(&block);
 
-        main
+        Ok(main)
     }
 }
 
@@ -128,7 +130,7 @@ impl Details {
     }
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<(), Box<dyn Error>> {
     let mut options = OpenOptions::new();
     options.create(true).write(true).read(true);
     let post_template = match std::fs::read_to_string("./templates/post.html") {
@@ -168,7 +170,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if post.is_draft {
             continue;
         }
-        let mut output = post_template.replace("{{% POST %}}", &post.produced_html());
+        let mut output = post_template.replace("{{% POST %}}", &post.produced_html()?);
         output = output.replace("{{% POST_TITLE %}}", &post.title);
         details.modify_text(&mut output);
 
@@ -203,7 +205,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn generate_home(options: &OpenOptions, details: &Details, posts: &[Post]) -> io::Result<()> {
+fn generate_home(
+    options: &OpenOptions,
+    details: &Details,
+    posts: &[Post],
+) -> Result<(), Box<dyn Error>> {
     let mut home_file = match options.open("./templates/home.html") {
         Ok(f) => f,
         Err(e) => panic!("Could not open file ./templates/home.html: {e}"),
@@ -226,15 +232,20 @@ fn generate_home(options: &OpenOptions, details: &Details, posts: &[Post]) -> io
     }
     let mut output = home_template.replace("{{% LATEST %}}", &output);
     details.modify_text(&mut output);
+    let complete = parser::convert_links(&output)?;
     let mut file = match options.open("./site/index.html") {
         Ok(f) => f,
         Err(e) => panic!("Could not open ./site/index.html: {e}"),
     };
-    file.write_all(output.as_bytes())?;
+    file.write_all(complete.as_bytes())?;
     Ok(())
 }
 
-fn generate_posts_list(options: &OpenOptions, details: &Details, posts: &[Post]) -> io::Result<()> {
+fn generate_posts_list(
+    options: &OpenOptions,
+    details: &Details,
+    posts: &[Post],
+) -> Result<(), Box<dyn Error>> {
     let mut posts_file = match options.open("./templates/posts.html") {
         Ok(f) => f,
         Err(e) => panic!("Could not open file ./templates/posts.html: {e}"),
@@ -259,11 +270,12 @@ fn generate_posts_list(options: &OpenOptions, details: &Details, posts: &[Post])
     output.push_str("</div>");
     let mut output = posts_template.replace("{{% POSTS %}}", &output);
     details.modify_text(&mut output);
+    let complete = parser::convert_links(&output)?;
     let mut file = match options.open("./site/posts/index.html") {
         Ok(f) => f,
         Err(e) => panic!("Could not open ./site/posts/index.html: {e}"),
     };
-    match file.write(output.as_bytes()) {
+    match file.write(complete.as_bytes()) {
         Ok(_) => {}
         Err(e) => panic!("Couldn't write to ./site/posts/index.html: {e}"),
     };
