@@ -50,7 +50,6 @@ body {
 }
 
 body {
-    margin-bottom: 2em;
     display: flex;
     flex-direction: column;
 }
