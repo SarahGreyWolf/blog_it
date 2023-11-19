@@ -5,8 +5,7 @@ use std::{
     io::{self, Read, Write},
 };
 
-use chrono::prelude::*;
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
 
 mod parser;
 
