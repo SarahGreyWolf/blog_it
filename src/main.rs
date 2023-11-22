@@ -1,9 +1,12 @@
+#![feature(path_file_prefix)]
+
 use std::{
     cmp::Ordering,
     error::Error,
     fmt::Display,
-    fs::OpenOptions,
+    fs::{File, OpenOptions},
     io::{Read, Write},
+    path::{Path, PathBuf},
 };
 
 use chrono::{DateTime, NaiveDate, Utc};
@@ -205,20 +208,51 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+struct Template {
+    file_name: String,
+    file: Option<File>,
+    content: String,
+}
+
+impl Template {
+    pub fn new(open_opts: &OpenOptions, file_path: &Path) -> std::io::Result<Template> {
+        let Some(os_file_name) = file_path.file_prefix() else {
+            panic!(
+                "Could not get file prefix from path: {}",
+                file_path.display()
+            );
+        };
+        let Some(file_name) = os_file_name.to_str() else {
+            panic!("Could not convert OsStr to str: {:?}", os_file_name);
+        };
+        let file = match open_opts.open(file_path) {
+            Ok(f) => f,
+            Err(e) => panic!("Could not open file {}: {e}", file_path.display()),
+        };
+        Ok(Template {
+            file_name: file_name.to_string(),
+            file: Some(file),
+            content: String::new(),
+        })
+    }
+    pub fn load(&mut self) {
+        let Some(file) = &mut self.file else {
+            panic!("File for {} was None", self.file_name);
+        };
+        match file.read_to_string(&mut self.content) {
+            Ok(_) => {}
+            Err(e) => panic!("Could not read template {}: {e}", self.file_name),
+        }
+    }
+}
+
 fn generate_home(
     options: &OpenOptions,
     details: &Details,
     posts: &[Post],
 ) -> Result<(), Box<dyn Error>> {
-    let mut home_file = match options.open("./templates/home.html") {
-        Ok(f) => f,
-        Err(e) => panic!("Could not open file ./templates/home.html: {e}"),
-    };
-    let mut home_template = String::new();
-    match home_file.read_to_string(&mut home_template) {
-        Ok(_) => {}
-        Err(e) => panic!("Couldn't get home template: {e}"),
-    };
+    let mut template = Template::new(&options, &PathBuf::from("./templates/home.html"))?;
+    template.load();
     let mut output = String::new();
     for post in posts {
         if post.is_draft {
@@ -230,7 +264,7 @@ fn generate_home(
             file_name, post.title
         ));
     }
-    let mut output = home_template.replace("{{% LATEST %}}", &output);
+    output = template.content.replace("{{% LATEST %}}", &output);
     details.modify_text(&mut output);
     let complete = parser::convert_links(&output)?;
     let mut file = match options.open("./site/index.html") {
@@ -246,15 +280,8 @@ fn generate_posts_list(
     details: &Details,
     posts: &[Post],
 ) -> Result<(), Box<dyn Error>> {
-    let mut posts_file = match options.open("./templates/posts.html") {
-        Ok(f) => f,
-        Err(e) => panic!("Could not open file ./templates/posts.html: {e}"),
-    };
-    let mut posts_template = String::new();
-    match posts_file.read_to_string(&mut posts_template) {
-        Ok(_) => {}
-        Err(e) => panic!("Couldn't get posts template: {e}"),
-    };
+    let mut template = Template::new(&options, &PathBuf::from("./templates/posts.html"))?;
+    template.load();
     let mut output = String::from("<div class=\"posts\">");
 
     for post in posts {
@@ -268,7 +295,7 @@ fn generate_posts_list(
         ));
     }
     output.push_str("</div>");
-    let mut output = posts_template.replace("{{% POSTS %}}", &output);
+    output = template.content.replace("{{% POSTS %}}", &output);
     details.modify_text(&mut output);
     let complete = parser::convert_links(&output)?;
     let mut file = match options.open("./site/posts/index.html") {
