@@ -4,7 +4,7 @@ use std::{
     cmp::Ordering,
     error::Error,
     fmt::Display,
-    fs::{File, OpenOptions},
+    fs::{read_dir, File, OpenOptions},
     io::{Read, Write},
     path::{Path, PathBuf},
 };
@@ -204,6 +204,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     generate_home(&options, &details, latest_posts)?;
     generate_posts_list(&options, &details, &posts)?;
+    generate_others(&options, &details)?;
 
     Ok(())
 }
@@ -244,6 +245,33 @@ impl Template {
             Err(e) => panic!("Could not read template {}: {e}", self.file_name),
         }
     }
+}
+
+fn generate_others(options: &OpenOptions, details: &Details) -> Result<(), Box<dyn Error>> {
+    for path in read_dir("./templates")? {
+        match path {
+            Ok(path) => {
+                // FIXME: Make this work with subdirectories
+                if path.path().is_dir() {
+                    continue;
+                }
+                let mut template = Template::new(&options, &path.path())?;
+                if template.file_name == "home" || template.file_name == "posts" {
+                    continue;
+                }
+                template.load();
+                details.modify_text(&mut template.content);
+                template.content = parser::convert_links(&template.content)?;
+                let mut file = match options.open(&format!("./site/{}.html", template.file_name)) {
+                    Ok(f) => f,
+                    Err(e) => panic!("Could not open ./site/{}.html: {e}", template.file_name),
+                };
+                file.write_all(template.content.as_bytes())?;
+            }
+            Err(e) => eprintln!("Failed to load entry in templates: {e}"),
+        }
+    }
+    Ok(())
 }
 
 fn generate_home(
