@@ -54,6 +54,12 @@ body {
     flex-direction: column;
 }
 
+div.center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 footer {
     flex-shrink: 0;
     text-align: center;
