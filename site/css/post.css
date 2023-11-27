@@ -26,3 +26,9 @@ p {
     margin-top: 2em;
     margin-bottom: 2em;
 }
+
+.content header {
+    gap: 1em;
+    flex-direction: column;
+    margin-bottom: 2em;
+}
