@@ -7,5 +7,5 @@ authors = ["SarahGreyWolf <m.sarahgreywolf@outlook.com>"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-chrono = "0.4.31"
+chrono = { version = "0.4.31", features = ["unstable-locales"] }
 regex = "1.10.2"

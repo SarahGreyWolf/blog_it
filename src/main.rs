@@ -111,6 +111,7 @@ struct Details {
     age: String,
     email: String,
     pronouns: String,
+    url: String,
 }
 
 impl Details {
@@ -121,6 +122,7 @@ impl Details {
             age: generate_age(),
             email: String::from("m.sarahgreywolf@outlook.com"),
             pronouns: String::from("She/Her"),
+            url: String::from("blog.sarahgreywolf.dev"),
         }
     }
 
@@ -248,14 +250,21 @@ impl Template {
 }
 
 fn generate_others(options: &OpenOptions, details: &Details) -> Result<(), Box<dyn Error>> {
-    for path in read_dir("./templates")? {
-        match path {
-            Ok(path) => {
+    for entry in read_dir("./templates")? {
+        match entry {
+            Ok(entry) => {
+                let path = entry.path();
                 // FIXME: Make this work with subdirectories
-                if path.path().is_dir() {
+                if path.is_dir() {
                     continue;
                 }
-                let mut template = Template::new(&options, &path.path())?;
+                let Some(ext) = path.extension() else {
+                    panic!("Path {:?} did not have an extension", entry.file_name());
+                };
+                if ext != "html" {
+                    continue;
+                }
+                let mut template = Template::new(&options, &path)?;
                 if template.file_name == "home" || template.file_name == "posts" {
                     continue;
                 }
