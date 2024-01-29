@@ -9,7 +9,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::{DateTime, LocalResult, NaiveDate, TimeZone, Utc};
 
 mod parser;
 
@@ -42,9 +42,9 @@ impl Display for Date {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut output = String::new();
 
-        output.push_str(&format!("{:2}/", self.day));
-        output.push_str(&format!("{:2}/", self.month));
-        output.push_str(&format!("{:4}", self.year));
+        output.push_str(&format!("{:02}/", self.day));
+        output.push_str(&format!("{:02}/", self.month));
+        output.push_str(&format!("{:04}", self.year));
         write!(f, "{}", output)
     }
 }
