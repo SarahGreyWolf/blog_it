@@ -85,6 +85,22 @@ impl Post {
 
         let mut block = String::from("<p>");
         for paragraph in self.content.split('\n') {
+            if paragraph.starts_with('#') {
+                let no_whitespace: String = paragraph.split_ascii_whitespace().collect();
+                let mut title_content = String::from("\n");
+                title_content.push_str(&format!(
+                    r#"<h2 id={:?}>"#,
+                    no_whitespace.trim_start_matches("#")
+                ));
+                title_content.push('\n');
+                title_content.push_str(&format!(r#"<a href={:?}>"#, no_whitespace));
+                title_content.push('\n');
+                title_content.push_str(paragraph);
+                title_content.push_str("\n</a>\n</h2>");
+                main.push_str(&title_content);
+                continue;
+            }
+
             let linked_paragraph = parser::convert_links(&paragraph)?;
             // TODO: Handle markdown links
             if linked_paragraph.is_empty() {
@@ -172,9 +188,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     posts.reverse();
 
     for post in &posts {
-        if post.is_draft {
-            continue;
-        }
         let mut output = post_template.replace("{{% POST %}}", &post.produced_html()?);
         output = output.replace("{{% POST_TITLE %}}", &post.title);
         details.modify_text(&mut output);
