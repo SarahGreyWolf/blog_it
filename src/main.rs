@@ -22,7 +22,10 @@ struct Date {
 
 impl PartialOrd for Date {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        if self.year == other.year && self.month == other.month && self.day == other.day {
+        if self.year == other.year
+            && self.month == other.month
+            && self.day == other.day
+        {
             return Some(core::cmp::Ordering::Equal);
         }
         if self.year > other.year {
@@ -31,7 +34,10 @@ impl PartialOrd for Date {
         if self.month > other.month && self.year == other.year {
             return Some(core::cmp::Ordering::Greater);
         }
-        if self.day > other.day && self.month == other.month && self.year == other.year {
+        if self.day > other.day
+            && self.month == other.month
+            && self.year == other.year
+        {
             return Some(core::cmp::Ordering::Greater);
         }
         Some(core::cmp::Ordering::Less)
@@ -60,11 +66,15 @@ struct Post {
 }
 
 impl PartialEq for Post {
-    fn eq(&self, other: &Self) -> bool { self.title == other.title && self.date == other.date }
+    fn eq(&self, other: &Self) -> bool {
+        self.title == other.title && self.date == other.date
+    }
 }
 
 impl PartialOrd for Post {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> { self.date.partial_cmp(&other.date) }
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.date.partial_cmp(&other.date)
+    }
 }
 
 impl Ord for Post {
@@ -86,14 +96,16 @@ impl Post {
         let mut block = String::from("<p>");
         for paragraph in self.content.split('\n') {
             if paragraph.starts_with('#') {
-                let no_whitespace: String = paragraph.split_ascii_whitespace().collect();
+                let no_whitespace: String =
+                    paragraph.split_ascii_whitespace().collect();
                 let mut title_content = String::from("\n");
                 title_content.push_str(&format!(
-                    r#"<h2 id={:?}>"#,
+                    r#"<h2 class="section" id={:?}>"#,
                     no_whitespace.trim_start_matches("#")
                 ));
                 title_content.push('\n');
-                title_content.push_str(&format!(r#"<a href={:?}>"#, no_whitespace));
+                title_content
+                    .push_str(&format!(r#"<a href={:?}>"#, no_whitespace));
                 title_content.push('\n');
                 title_content.push_str(paragraph);
                 title_content.push_str("\n</a>\n</h2>");
@@ -102,7 +114,6 @@ impl Post {
             }
 
             let linked_paragraph = parser::convert_links(&paragraph)?;
-            // TODO: Handle markdown links
             if linked_paragraph.is_empty() {
                 block = block.trim_end_matches("<br>").to_owned();
                 block.push_str("</p>");
@@ -153,7 +164,7 @@ impl Details {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut options = OpenOptions::new();
-    options.create(true).write(true).read(true);
+    options.create(true).write(true).read(true).append(false);
     let post_template = match std::fs::read_to_string("./templates/post.html") {
         Ok(pt) => pt,
         Err(e) => panic!("Couldn't get post template: {e}"),
@@ -172,12 +183,17 @@ fn main() -> Result<(), Box<dyn Error>> {
             if ext == "md" {
                 let mut open_file = match options.open(file.path()) {
                     Ok(f) => f,
-                    Err(e) => panic!("Couldn't open file for post {:?}: {e}", file.path()),
+                    Err(e) => panic!(
+                        "Couldn't open file for post {:?}: {e}",
+                        file.path()
+                    ),
                 };
                 let mut post_string = String::new();
                 match open_file.read_to_string(&mut post_string) {
                     Ok(_) => {}
-                    Err(e) => panic!("Couldn't read from post {:?}: {e}", file.path()),
+                    Err(e) => {
+                        panic!("Couldn't read from post {:?}: {e}", file.path())
+                    }
                 };
                 posts.push(Post::from(post_string));
             }
@@ -188,18 +204,20 @@ fn main() -> Result<(), Box<dyn Error>> {
     posts.reverse();
 
     for post in &posts {
-        let mut output = post_template.replace("{{% POST %}}", &post.produced_html()?);
+        let mut output =
+            post_template.replace("{{% POST %}}", &post.produced_html()?);
         output = output.replace("{{% POST_TITLE %}}", &post.title);
         details.modify_text(&mut output);
 
         let file_name = post.title.replace(' ', "_");
-        let mut open_file = match options.open(format!("./site/posts/{}.html", file_name)) {
-            Ok(f) => f,
-            Err(e) => panic!(
-                "Could not open or create file {}: {e}",
-                format!("./site/posts/{}.html", file_name)
-            ),
-        };
+        let mut open_file =
+            match options.open(format!("./site/posts/{}.html", file_name)) {
+                Ok(f) => f,
+                Err(e) => panic!(
+                    "Could not open or create file {}: {e}",
+                    format!("./site/posts/{}.html", file_name)
+                ),
+            };
         match open_file.write(output.as_bytes()) {
             Ok(_) => {}
             Err(e) => panic!(
@@ -231,7 +249,10 @@ struct Template {
 }
 
 impl Template {
-    pub fn new(open_opts: &OpenOptions, file_path: &Path) -> std::io::Result<Template> {
+    pub fn new(
+        open_opts: &OpenOptions,
+        file_path: &Path,
+    ) -> std::io::Result<Template> {
         let Some(os_file_name) = file_path.file_prefix() else {
             panic!(
                 "Could not get file prefix from path: {}",
@@ -243,7 +264,9 @@ impl Template {
         };
         let file = match open_opts.open(file_path) {
             Ok(f) => f,
-            Err(e) => panic!("Could not open file {}: {e}", file_path.display()),
+            Err(e) => {
+                panic!("Could not open file {}: {e}", file_path.display())
+            }
         };
         Ok(Template {
             file_name: file_name.to_string(),
@@ -262,7 +285,10 @@ impl Template {
     }
 }
 
-fn generate_others(options: &OpenOptions, details: &Details) -> Result<(), Box<dyn Error>> {
+fn generate_others(
+    options: &OpenOptions,
+    details: &Details,
+) -> Result<(), Box<dyn Error>> {
     for entry in read_dir("./templates")? {
         match entry {
             Ok(entry) => {
@@ -272,21 +298,30 @@ fn generate_others(options: &OpenOptions, details: &Details) -> Result<(), Box<d
                     continue;
                 }
                 let Some(ext) = path.extension() else {
-                    panic!("Path {:?} did not have an extension", entry.file_name());
+                    panic!(
+                        "Path {:?} did not have an extension",
+                        entry.file_name()
+                    );
                 };
                 if ext != "html" {
                     continue;
                 }
                 let mut template = Template::new(&options, &path)?;
-                if template.file_name == "home" || template.file_name == "posts" {
+                if template.file_name == "home" || template.file_name == "posts"
+                {
                     continue;
                 }
                 template.load();
                 details.modify_text(&mut template.content);
                 template.content = parser::convert_links(&template.content)?;
-                let mut file = match options.open(&format!("./site/{}.html", template.file_name)) {
+                let mut file = match options
+                    .open(&format!("./site/{}.html", template.file_name))
+                {
                     Ok(f) => f,
-                    Err(e) => panic!("Could not open ./site/{}.html: {e}", template.file_name),
+                    Err(e) => panic!(
+                        "Could not open ./site/{}.html: {e}",
+                        template.file_name
+                    ),
                 };
                 file.write_all(template.content.as_bytes())?;
             }
@@ -301,7 +336,8 @@ fn generate_home(
     details: &Details,
     posts: &[Post],
 ) -> Result<(), Box<dyn Error>> {
-    let mut template = Template::new(&options, &PathBuf::from("./templates/home.html"))?;
+    let mut template =
+        Template::new(&options, &PathBuf::from("./templates/home.html"))?;
     template.load();
     let mut output = String::new();
     for post in posts {
@@ -330,21 +366,24 @@ fn generate_posts_list(
     details: &Details,
     posts: &[Post],
 ) -> Result<(), Box<dyn Error>> {
-    let mut template = Template::new(&options, &PathBuf::from("./templates/posts.html"))?;
+    let mut template =
+        Template::new(&options, &PathBuf::from("./templates/posts.html"))?;
     template.load();
-    let mut output = String::from("<div class=\"posts\">");
+    let mut output = String::from("<div class=\"posts\">\n");
 
+    output.push_str("<ol>\n");
     for post in posts {
         if post.is_draft {
             continue;
         }
         let file_name = post.title.replace(' ', "_");
         output.push_str(&format!(
-            "<a href=\"/posts/{}.html\">{}</a>",
+            "<li><a href=\"/posts/{}.html\">{}</a></li>\n",
             file_name, post.title
         ));
     }
-    output.push_str("</div>");
+    output.push_str("</ol>\n");
+    output.push_str("</div>\n");
     output = template.content.replace("{{% POSTS %}}", &output);
     details.modify_text(&mut output);
     let complete = parser::convert_links(&output)?;

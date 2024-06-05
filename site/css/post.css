@@ -23,7 +23,7 @@ h3 {
 }
 
 p {
-    margin-top: 2em;
+    margin-top: 1em;
     margin-bottom: 2em;
 }
 
@@ -31,4 +31,8 @@ p {
     gap: 1em;
     flex-direction: column;
     margin-bottom: 2em;
+}
+
+.content h2.section {
+    margin-bottom: 0;
 }
