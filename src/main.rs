@@ -238,7 +238,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     generate_home(&options, &details, latest_posts)?;
     generate_posts_list(&options, &details, &posts)?;
     generate_others(&options, &details)?;
-    generate_rss(&options, &details, &posts)?;
 
     Ok(())
 }
