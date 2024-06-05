@@ -26,11 +26,11 @@
         background-color: #444444;
     }
     nav a {
-        color: lightgrey;
+        color: white;
     }
 
     nav a:visited {
-        color: darkgrey;
+        color: white;
     }
 }
 
@@ -132,7 +132,7 @@ a[href^="mailto:"] {
 }
 
 .content a:visited {
-    color: grey;
+    color: #0b7534;
 }
 
 .container {
