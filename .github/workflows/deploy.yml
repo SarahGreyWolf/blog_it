@@ -2,7 +2,7 @@
 
 name: Generate Blog and publish to gh-pages
 
-on: 
+on:
   push:
     branches: [ "main" ]
   workflow_dispatch:
@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v5
     - name: Nightly Rust
       run: rustup update nightly && rustup default nightly
     - name: Build Blog
@@ -21,12 +21,12 @@ jobs:
     - name: Setup Pages
       if: success()
       id: pages
-      uses: actions/configure-pages@v3
+      uses: actions/configure-pages@v5
     - name: Upload artifact
-      uses: actions/upload-pages-artifact@v2
+      uses: actions/upload-pages-artifact@v4
       with:
         path: ./site
-        
+
   publish:
     permissions:
       pages: write      # to deploy to Pages
@@ -39,4 +39,4 @@ jobs:
     steps:
     - name: Deploy to GitHub Pages
       id: deployment
-      uses: actions/deploy-pages@v2
+      uses: actions/deploy-pages@v4
